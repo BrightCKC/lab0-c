@@ -292,8 +292,73 @@ void q_reverseK(struct list_head *head, int k)
     free(temp_head);
 }
 
+void sort_descend(struct list_head *head)
+{
+    if (list_empty(head) || list_is_singular(head))
+        return;
+
+    struct list_head list_left, list_right;
+    INIT_LIST_HEAD(&list_left);
+    INIT_LIST_HEAD(&list_right);
+
+    element_t *pivot = list_first_entry(head, element_t, list);
+    list_del(&pivot->list);
+
+    element_t *node = NULL, *safe = NULL;
+    list_for_each_entry_safe (node, safe, head, list) {
+        if (entry_is_greater(node, pivot))
+            list_move(&node->list, &list_left);
+        else
+            list_move(&node->list, &list_right);
+    }
+
+    sort_descend(&list_left);
+    sort_descend(&list_right);
+
+    list_add(&pivot->list, head);
+    list_splice(&list_left, head);
+    list_splice_tail(&list_right, head);
+}
+
+void sort_ascend(struct list_head *head)
+{
+    if (list_empty(head) || list_is_singular(head))
+        return;
+
+    struct list_head list_left, list_right;
+    INIT_LIST_HEAD(&list_left);
+    INIT_LIST_HEAD(&list_right);
+
+    element_t *pivot = list_first_entry(head, element_t, list);
+    list_del(&pivot->list);
+
+    element_t *node = NULL, *safe = NULL;
+    list_for_each_entry_safe (node, safe, head, list) {
+        if (!entry_is_greater(node, pivot))
+            list_move(&node->list, &list_left);
+        else
+            list_move(&node->list, &list_right);
+    }
+
+    sort_ascend(&list_left);
+    sort_ascend(&list_right);
+
+    list_add(&pivot->list, head);
+    list_splice(&list_left, head);
+    list_splice_tail(&list_right, head);
+}
+
 /* Sort elements of queue in ascending/descending order */
-void q_sort(struct list_head *head, bool descend) {}
+void q_sort(struct list_head *head, bool descend)
+{
+    if (!head || list_empty(head))
+        return;
+
+    if (descend)
+        sort_descend(head);
+    else
+        sort_ascend(head);
+}
 
 /* Remove every node which has a node with a strictly less value anywhere to
  * the right side of it */
