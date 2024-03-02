@@ -57,6 +57,17 @@ bool entry_is_greater(element_t *node1, element_t *node2)
     return false;
 }
 
+bool list_is_greater(struct list_head *node1, struct list_head *node2)
+{
+    element_t *element1 = container_of(node1, element_t, list),
+              *element2 = container_of(node2, element_t, list);
+
+    if (strcmp(element1->value, element2->value) > 0)
+        return true;
+
+    return false;
+}
+
 /* Create an empty queue */
 struct list_head *q_new()
 {
@@ -373,7 +384,26 @@ void q_sort(struct list_head *head, bool descend)
 int q_ascend(struct list_head *head)
 {
     // https://leetcode.com/problems/remove-nodes-from-linked-list/
-    return 0;
+    if (!head || list_empty(head))
+        return 0;
+
+    int count = 1;
+    struct list_head *pivot = head->prev, *node = pivot->prev, *remove_node;
+    while (node != head) {
+        if (!list_is_greater(pivot, node)) {
+            remove_node = node;
+            node = node->prev;
+
+            list_del(remove_node);
+            q_release_element(container_of(remove_node, element_t, list));
+        } else {
+            count++;
+            pivot = node;
+            node = node->prev;
+        }
+    }
+
+    return count;
 }
 
 /* Remove every node which has a node with a strictly greater value anywhere to
@@ -381,7 +411,26 @@ int q_ascend(struct list_head *head)
 int q_descend(struct list_head *head)
 {
     // https://leetcode.com/problems/remove-nodes-from-linked-list/
-    return 0;
+    if (!head || list_empty(head))
+        return 0;
+
+    int count = 1;
+    struct list_head *pivot = head->prev, *node = pivot->prev, *remove_node;
+    while (node != head) {
+        if (list_is_greater(pivot, node)) {
+            remove_node = node;
+            node = node->prev;
+
+            list_del(remove_node);
+            q_release_element(container_of(remove_node, element_t, list));
+        } else {
+            count++;
+            pivot = node;
+            node = node->prev;
+        }
+    }
+
+    return count;
 }
 
 /* Merge all the queues into one sorted queue, which is in ascending/descending
