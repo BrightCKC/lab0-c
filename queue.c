@@ -169,7 +169,7 @@ bool q_delete_dup(struct list_head *head)
             q_release_element(node);
         }
 
-        dup = match;
+        dup = (&node->list != head && !strcmp(node->value, safe->value));
     }
 
     return true;
