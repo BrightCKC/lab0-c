@@ -36,6 +36,19 @@ void move_front(struct list_head *node, struct list_head *behind)
     node->prev->next = node;
 }
 
+void add_behind_all_init(struct list_head *list, struct list_head *front)
+{
+    if (!list || !front)
+        return;
+
+    list->prev->next = front->next;
+    list->next->prev = front;
+    front->next->prev = list->prev;
+    front->next = list->next;
+
+    INIT_LIST_HEAD(list);
+}
+
 /* Create an empty queue */
 struct list_head *q_new()
 {
@@ -246,6 +259,37 @@ void q_reverse(struct list_head *head)
 void q_reverseK(struct list_head *head, int k)
 {
     // https://leetcode.com/problems/reverse-nodes-in-k-group/
+    if (!head || list_empty(head) || k < 2)
+        return;
+
+    struct list_head *temp_head = malloc(sizeof(struct list_head));
+
+    int count_k = 0;
+    struct list_head *cur = head->next, *first = cur, *cut_p, *cut_next, *tail;
+    while (cur != head) {
+        if (count_k == k) {
+            tail = cur;
+            count_k = 0;
+
+            cut_p = first;
+            cut_next = first;
+            first = first->prev;
+            while (cut_p != tail) {
+                cut_next = cut_next->next;
+
+                list_move(cut_p, temp_head);
+                cut_p = cut_next;
+            }
+
+            add_behind_all_init(temp_head, first);
+            first = tail;
+        }
+
+        count_k++;
+        cur = cur->next;
+    }
+
+    free(temp_head);
 }
 
 /* Sort elements of queue in ascending/descending order */
