@@ -433,10 +433,90 @@ int q_descend(struct list_head *head)
     return count;
 }
 
+void merge2queue_ascend(struct list_head *tar_head, struct list_head *src_head)
+{
+    if (!tar_head || list_empty(tar_head))
+        return;
+    if (!src_head || list_empty(src_head))
+        return;
+
+    struct list_head *L2, *safe, *L1 = tar_head->next;
+
+    list_for_each_safe (L2, safe, src_head) {
+        if (list_is_greater(L2, L1)) {
+            while (L1 != tar_head && list_is_greater(L2, L1)) {
+                L1 = L1->next;
+            }
+
+            if (L1 == tar_head)
+                break;
+
+            move_front(L2, L1);
+        } else {
+            move_front(L2, L1);
+        }
+    }
+
+    if (L2 != src_head) {
+        list_splice_tail(src_head, tar_head);
+        INIT_LIST_HEAD(src_head);
+    }
+}
+
+void merge2queue_descend(struct list_head *tar_head, struct list_head *src_head)
+{
+    if (!tar_head || list_empty(tar_head))
+        return;
+    if (!src_head || list_empty(src_head))
+        return;
+
+    struct list_head *L2, *safe, *L1 = tar_head->next;
+
+    list_for_each_safe (L2, safe, src_head) {
+        if (!list_is_greater(L2, L1)) {
+            while (L1 != tar_head && list_is_greater(L2, L1)) {
+                L1 = L1->next;
+            }
+
+            if (L1 == tar_head)
+                break;
+
+            move_front(L2, L1);
+        } else {
+            move_front(L2, L1);
+        }
+    }
+
+    if (L2 != src_head) {
+        list_splice_tail(src_head, tar_head);
+        INIT_LIST_HEAD(src_head);
+    }
+}
+
 /* Merge all the queues into one sorted queue, which is in ascending/descending
  * order */
 int q_merge(struct list_head *head, bool descend)
 {
     // https://leetcode.com/problems/merge-k-sorted-lists/
-    return 0;
+    if (!head || list_empty(head))
+        return 0;
+    if (list_is_singular(head))
+        return q_size(list_first_entry(head, queue_contex_t, chain)->q);
+
+    struct list_head *first = head->next, *next = first->next;
+    queue_contex_t *tar_queue = container_of(first, queue_contex_t, chain);
+
+    while (next != head && next) {
+        if (descend) {
+            merge2queue_descend(tar_queue->q,
+                                container_of(next, queue_contex_t, chain)->q);
+        } else {
+            merge2queue_ascend(tar_queue->q,
+                               container_of(next, queue_contex_t, chain)->q);
+        }
+
+        next = next->next;
+    }
+
+    return q_size(tar_queue->q);
 }
