@@ -10,6 +10,31 @@
  *   cppcheck-suppress nullPointer
  */
 
+void move_behind(struct list_head *node, struct list_head *front)
+{
+    if (!node || !front)
+        return;
+
+    list_del_init(node);
+
+    node->next = front->next;
+    node->prev = front;
+    node->next->prev = node;
+    node->prev->next = node;
+}
+
+void move_front(struct list_head *node, struct list_head *behind)
+{
+    if (!node || !behind)
+        return;
+
+    list_del_init(node);
+
+    node->next = behind;
+    node->prev = behind->prev;
+    behind->prev = node;
+    node->prev->next = node;
+}
 
 /* Create an empty queue */
 struct list_head *q_new()
@@ -197,7 +222,25 @@ void q_swap(struct list_head *head)
 }
 
 /* Reverse elements in queue */
-void q_reverse(struct list_head *head) {}
+void q_reverse(struct list_head *head)
+{
+    if (!head || list_empty(head))
+        return;
+
+    struct list_head *first = head->next, *tail = head->prev, *cut_f, *cut_t;
+    while ((first != tail) && (tail != first->prev)) {
+        cut_f = first;
+        cut_t = tail;
+        first = first->prev;
+        tail = tail->next;
+
+        move_behind(cut_t, first);
+        move_front(cut_f, tail);
+
+        first = cut_t->next;
+        tail = cut_f->prev;
+    }
+}
 
 /* Reverse the nodes of the list k at a time */
 void q_reverseK(struct list_head *head, int k)
