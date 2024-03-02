@@ -49,6 +49,14 @@ void add_behind_all_init(struct list_head *list, struct list_head *front)
     INIT_LIST_HEAD(list);
 }
 
+bool entry_is_greater(element_t *node1, element_t *node2)
+{
+    if (strcmp(node1->value, node2->value) > 0)
+        return true;
+
+    return false;
+}
+
 /* Create an empty queue */
 struct list_head *q_new()
 {
